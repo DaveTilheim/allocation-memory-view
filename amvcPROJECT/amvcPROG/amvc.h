@@ -23,7 +23,7 @@ void generateAMV_H(char *);
 int existsFile(const char *);
 int duplicateReservedLabel(const char *);
 int goodExtentionFile(const char *);
-void setAMVCFiles(char *,pList, const char*);
+void setAMVCFiles(char *,pList, const char*, char [2]);
 void compileAMVCFiles(const char *,const pList, const char*, const char*, const char*);
 void ls_str(char *);
 

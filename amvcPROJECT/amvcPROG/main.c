@@ -9,13 +9,14 @@
 
 int main(int argc, char *const*argv)
 {	
-	char optstring[] = ":hm:l:d:a:p:vV";
+	char optstring[] = ":hm:l:d:a:p:vVs:";
 	char msg[1024] = "";
-	char dir[512] = "CHANGE_PATH_HERE/amvcPROJECT/amvTools/";
+	char dir[512] = "PATH/amvTools/";
 	char mainFile[51] = "";
 	char flags[256] = "";
 	char exeArgs[256] = "";
 	char ls[1024] = "";
+	char signalid[2] = {0};
 	int val=0, a=0;
 	
 	pList libs = empty_list();
@@ -38,6 +39,13 @@ int main(int argc, char *const*argv)
 				printf("%s\n\nopen: github\n\n", _GITHUB);
 				system("open https://github.com/DaveTilheim");
 				exit(0);
+				break;
+			case 's':
+				signalid[0] = atoi(optarg+(optarg[0]=='\''?1:0));
+				if(strlen(optarg) > 3 && strstr(optarg, " "))
+				{
+					signalid[1] = atoi(strstr(optarg, " "));
+				}
 				break;
 			case 'd':
 				sprintf(msg, "amvTools directory as been changed : \"%s\"", optarg);
@@ -156,9 +164,9 @@ int main(int argc, char *const*argv)
 				amvcNote("[-p 'exe args']");
 				amvcNote("[-v] credits");
 				amvcNote("[-V] credits and open github");
-				amvcWarning("SIGINT & SIGSEGV are already used");
-				amvcWarning("these labels should not be defined in your file:\n\
-				\tAMVGLOBALTOOLS_t\n\tAMVGlobalTools\n\tstruct List_t\n\tList\n\t*pList\n\tAMVMemBlock_t\n");
+				amvcNote("[-s idsignal(11 | 2) already used in your prog]");
+				amvcWarning("these labels should not be defined in your file:\
+				\n\tAMVGLOBALTOOLS_t\n\tAMVGlobalTools\n\tstruct List_t\n\tList\n\tAMVMemBlock_t\n");
 				amvcWarning("your main function must be int function, not void");
 				libs = freed_list(libs);
 				exit(0);
@@ -172,7 +180,7 @@ int main(int argc, char *const*argv)
 		exit(0);
 	}
 
-	setAMVCFiles(mainFile, libs, dir);
+	setAMVCFiles(mainFile, libs, dir, signalid);
 	generateAMV_H(dir);
 	if(strcmp(dir, "ERROR"))
 		compileAMVCFiles(mainFile, libs, flags, exeArgs, dir);
@@ -185,5 +193,6 @@ int main(int argc, char *const*argv)
 		tmp = tmp->next;
 	}
 	libs = freed_list(libs);
+
 	return 0;
 }

@@ -87,7 +87,7 @@ static long getMemReleased(void);
 static void AMVLogs(void);
 static void AMVTabLogs(void);
 static void getMemBlockByAdress(const void *);
-AMVGLOBALTOOLS_t AMVGlobalTools = {0,0,0,{0},NULL,NULL,AMVLogs,getMemBlockByAdress,add_cpylast,ctrC,aborts};
+AMVGLOBALTOOLS_t AMVGlobalTools = {0,0,0,{0},NULL,NULL,AMVLogs,getMemBlockByAdress,add_cpylast,aborts,ctrC};
 
 static void aborts(int dummy)
 {
@@ -109,7 +109,7 @@ static void ctrC(int dummy)
 static long getMemReleased(void)
 {
 	long totMemReleased = 0;
-	pList temp = AMVGlobalTools.memBlocksList;
+	List* temp = AMVGlobalTools.memBlocksList;
 	printf("\n");
 	while(temp != NULL)
 	{
@@ -123,7 +123,7 @@ static long getMemReleased(void)
 
 static void AMVTabLogs(void)
 {
-	pList temp = AMVGlobalTools.memBlocksList;
+	List* temp = AMVGlobalTools.memBlocksList;
 	AMVMemBlock_t *data;
 	char b[128] = "";
 	printf("\033[97m+----------------------+------------------+----------------+------+\n");
@@ -152,7 +152,7 @@ static void AMVTabLogs(void)
 static void AMVStatusLogs(void);
 static void AMVStatusLogs(void)
 {
-	pList temp = AMVGlobalTools.memBlocksList;
+	List* temp = AMVGlobalTools.memBlocksList;
 	AMVMemBlock_t *data;
 	printf("\n\n\033[97m");
 	while(temp)
@@ -187,9 +187,9 @@ static void AMVLogs(void)
 	printf(" \033[97m%ld\033[0m\n", AMVGlobalTools.mallocSpy);
 	cprint3("free used:", LIGHT_MAGENTA, ITALIC, UNDERLINE);
 	printf(" \033[97m%ld\033[0m\n\n", AMVGlobalTools.freeSpy);
-	cprint3("memory allocated:", LIGHT_BLUE, UNDERLINE, ITALIC);
+	cprint3("allocated memory:", LIGHT_BLUE, UNDERLINE, ITALIC);
 	printf(" \033[97m%ld\033[0m bytes\n", AMVGlobalTools.mallocSizeSpy);
-	cprint3("memory released:", LIGHT_MAGENTA, UNDERLINE, ITALIC);
+	cprint3("released memory:", LIGHT_MAGENTA, UNDERLINE, ITALIC);
 	printf(" \033[97m%ld\033[0m bytes\n\n", bytesFree);
 	cprint3("memory leaks:", LIGHT_MAGENTA, UNDERLINE, ITALIC);
 	printf(" %s%ld ==> %ld bytes lost\033[0m\n", freeLost?"\033[91m":"\033[96m", freeLost, AMVGlobalTools.mallocSizeSpy-bytesFree);
@@ -205,7 +205,7 @@ static void AMVLogs(void)
 static void getMemBlockByAdress(const void *adress)
 {
 	AMVMemBlock_t *mem = NULL;
-	pList temp = AMVGlobalTools.memBlocksList;
+	List* temp = AMVGlobalTools.memBlocksList;
 	while(temp != NULL)
 	{
 		mem = temp->data;

@@ -97,14 +97,15 @@ int duplicateReservedLabel(const char *fileName)
 	return 0;
 }
 
-static void setIncludeAMVToFile(const char *, const char *, const int, const char*);
-static void setIncludeAMVToFile(const char *old, const char *new, const int mainMode, const char *dir)
+static void setIncludeAMVToFile(const char *, const char *, const int, const char*, char [2]);
+static void setIncludeAMVToFile(const char *old, const char *new, const int mainMode, const char *dir, char signalid[2])
 {//AMVLogs
 	FILE *fold = NULL;
 	FILE *fnew = NULL;
 	char buffer[1024] = "", *tmp=NULL, *tmp2=NULL;
 	int mainFound = 0;
 	int endInclude;
+	int mainAcc = 0;
 	fold = fopen(old, "rt");
 	if(!fold)
 	{
@@ -130,6 +131,42 @@ static void setIncludeAMVToFile(const char *old, const char *new, const int main
 				if(!mainFound && strstr(buffer, "int main("))
 				{
 					mainFound = 1;
+				}
+				if(mainFound && !mainAcc)
+				{
+					if((tmp=strstr(buffer, "{")))
+					{
+						mainAcc = 1;
+						if(tmp!=buffer)
+						{
+							*tmp = 0;
+							fprintf(fnew, "%s{%s%s", buffer,
+								signalid[0]!=2&&signalid[1]!=2?"signal(SIGINT, AMVGlobalTools.ctrC);":";",
+								signalid[0]!=11&&signalid[1]!=11?"signal(SIGSEGV, AMVGlobalTools.aborts);":";");
+						}
+						else
+						{
+							fprintf(fnew, "{%s%s%s", buffer+1,
+								signalid[0]!=2&&signalid[1]!=2?"signal(SIGINT, AMVGlobalTools.ctrC);":";",
+								signalid[0]!=11&&signalid[1]!=11?"signal(SIGSEGV, AMVGlobalTools.aborts);":";");
+							continue;
+						}
+						
+						if(*(tmp+1) == 0)
+							continue;
+						else
+						{
+							if(*(tmp+1) == '\n')
+							{
+								fprintf(fnew, "\n");
+								continue;
+							}
+							else
+							{
+								strcpy(buffer, tmp+1);
+							}
+						}
+					}
 				}
 				if(mainFound)
 				{
@@ -164,7 +201,7 @@ static void setIncludeAMVToFile(const char *old, const char *new, const int main
 	fclose(fnew);
 }
 
-void setAMVCFiles(char *mainName, pList libs, const char *dir)
+void setAMVCFiles(char *mainName, pList libs, const char *dir, char signalid[2])
 {
 	pList temp = libs;
 	char *amvcFileName = NULL;
@@ -176,7 +213,7 @@ void setAMVCFiles(char *mainName, pList libs, const char *dir)
 	}
 	strcpy(amvcFileName, ".AMV");
 	strcat(amvcFileName, mainName);
-	setIncludeAMVToFile(mainName, amvcFileName, 1, dir);
+	setIncludeAMVToFile(mainName, amvcFileName, 1, dir, signalid);
 	strcpy(mainName, amvcFileName);
 	while(temp != NULL)
 	{
@@ -190,7 +227,7 @@ void setAMVCFiles(char *mainName, pList libs, const char *dir)
 		}
 		strcpy(amvcFileName, ".AMV");
 		strcat(amvcFileName, temp->data);
-		setIncludeAMVToFile(temp->data, amvcFileName, 0, dir);
+		setIncludeAMVToFile(temp->data, amvcFileName, 0, dir, signalid);
 		setd_cpyfirst(temp, strlen(amvcFileName)+1, amvcFileName);
 		temp = temp->next;
 	}
@@ -204,7 +241,7 @@ static void interrupt(int dummy)
 	interruptFLAG = 1;
 	printf("\n");
 	amvcWarning("interrupt");
-	amvcNote("press any key to quit");
+	amvcNote("press enter to quit");
 }
 
 void compileAMVCFiles(const char *mainName,const pList libs, const char*flags, const char *exeArgs, const char *dir)
