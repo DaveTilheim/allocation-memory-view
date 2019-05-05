@@ -3,21 +3,23 @@
 #include <getopt.h>
 #include <string.h>
 #include <signal.h>
+#include <ctype.h>
 #include "list.h"
 #include "amvc.h"
 
 
 int main(int argc, char *const*argv)
 {	
-	char optstring[] = ":hm:l:d:a:p:vVs:";
+	char optstring[] = ":hm:l:d:a:p:vVs:o:";
 	char msg[1024] = "";
-	char dir[512] = "PATH/amvTools/";
+	char dir[512] = "YOUR_PATH/amvTools/";
 	char mainFile[51] = "";
 	char flags[256] = "";
 	char exeArgs[256] = "";
 	char ls[1024] = "";
 	char signalid[2] = {0};
 	int val=0, a=0;
+	int mode = 0;
 	
 	pList libs = empty_list();
 	pList tmp = empty_list();
@@ -25,6 +27,27 @@ int main(int argc, char *const*argv)
 	{ 
 		switch(val)
 		{
+			case 'o':
+				if(strlen(optarg) == 1 && isdigit(*optarg))
+				{
+					mode = atoi(optarg);
+					if(mode < 0 || mode > 3)
+					{
+						amvcWarning("this mode not exists(0 mode activated)");
+						mode = 0;
+					}
+					else
+					{
+						sprintf(msg, "mode %d", mode);
+						amvcNote(msg);
+					}
+				}
+				else
+				{
+					amvcNote("mode 0");
+					mode = 0;
+				}
+				break;
 			case 'v':
 				libs = freed_list(libs);
 				printf("\n%s\n", _VERSION);
@@ -150,10 +173,12 @@ int main(int argc, char *const*argv)
 			case '?':
 				printf("unknown option: %c\n", optopt); 
 				libs = freed_list(libs);
+				exit(0);
 				break;
 			case ':':
 				printf("missing arg: %c\n", optopt); 
 				libs = freed_list(libs);
+				exit(0);
 				break;
 			case 'h':
 			default:
@@ -180,7 +205,7 @@ int main(int argc, char *const*argv)
 		exit(0);
 	}
 
-	setAMVCFiles(mainFile, libs, dir, signalid);
+	setAMVCFiles(mainFile, libs, dir, signalid, mode);
 	generateAMV_H(dir);
 	if(strcmp(dir, "ERROR"))
 		compileAMVCFiles(mainFile, libs, flags, exeArgs, dir);

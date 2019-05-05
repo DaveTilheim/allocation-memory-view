@@ -87,7 +87,7 @@ static long getMemReleased(void);
 static void AMVLogs(void);
 static void AMVTabLogs(void);
 static void getMemBlockByAdress(const void *);
-AMVGLOBALTOOLS_t AMVGlobalTools = {0,0,0,{0},NULL,NULL,AMVLogs,getMemBlockByAdress,add_cpylast,aborts,ctrC};
+AMVGLOBALTOOLS_t AMVGlobalTools = {0,0,0,0,{0},NULL,NULL,AMVLogs,getMemBlockByAdress,add_cpylast,aborts,ctrC};
 
 static void aborts(int dummy)
 {
@@ -181,8 +181,13 @@ static void AMVLogs(void)
 	printf("\n/-----------[\033[95mAMV Result\033[0m]-----------\\\n");
 	printf("\033[90m[%s %s %s]\n", __func__, __DATE__, __TIME__);
 	printf("[user: %s]\033[0m\n", getenv("USER"));
-	AMVTabLogs();
-	AMVStatusLogs();
+	if(AMVGlobalTools.mode == 0 || AMVGlobalTools.mode == 1)
+	{
+		AMVTabLogs();
+		printf("\n");
+	}
+	if(AMVGlobalTools.mode == 0 || AMVGlobalTools.mode == 2)
+		AMVStatusLogs();
 	cprint3("malloc used:", LIGHT_BLUE, ITALIC, UNDERLINE);
 	printf(" \033[97m%ld\033[0m\n", AMVGlobalTools.mallocSpy);
 	cprint3("free used:", LIGHT_MAGENTA, ITALIC, UNDERLINE);

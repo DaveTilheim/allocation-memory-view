@@ -97,8 +97,8 @@ int duplicateReservedLabel(const char *fileName)
 	return 0;
 }
 
-static void setIncludeAMVToFile(const char *, const char *, const int, const char*, char [2]);
-static void setIncludeAMVToFile(const char *old, const char *new, const int mainMode, const char *dir, char signalid[2])
+static void setIncludeAMVToFile(const char *, const char *, const int, const char*, char [2], int);
+static void setIncludeAMVToFile(const char *old, const char *new, const int mainMode, const char *dir, char signalid[2],int mode)
 {//AMVLogs
 	FILE *fold = NULL;
 	FILE *fnew = NULL;
@@ -140,13 +140,13 @@ static void setIncludeAMVToFile(const char *old, const char *new, const int main
 						if(tmp!=buffer)
 						{
 							*tmp = 0;
-							fprintf(fnew, "%s{%s%s", buffer,
+							fprintf(fnew, "%s{AMVGlobalTools.mode=%d;%s%s", buffer,mode,
 								signalid[0]!=2&&signalid[1]!=2?"signal(SIGINT, AMVGlobalTools.ctrC);":";",
 								signalid[0]!=11&&signalid[1]!=11?"signal(SIGSEGV, AMVGlobalTools.aborts);":";");
 						}
 						else
 						{
-							fprintf(fnew, "{%s%s%s", buffer+1,
+							fprintf(fnew, "{AMVGlobalTools.mode=%d;%s%s%s", mode,buffer+1,
 								signalid[0]!=2&&signalid[1]!=2?"signal(SIGINT, AMVGlobalTools.ctrC);":";",
 								signalid[0]!=11&&signalid[1]!=11?"signal(SIGSEGV, AMVGlobalTools.aborts);":";");
 							continue;
@@ -201,7 +201,7 @@ static void setIncludeAMVToFile(const char *old, const char *new, const int main
 	fclose(fnew);
 }
 
-void setAMVCFiles(char *mainName, pList libs, const char *dir, char signalid[2])
+void setAMVCFiles(char *mainName, pList libs, const char *dir, char signalid[2],int mode)
 {
 	pList temp = libs;
 	char *amvcFileName = NULL;
@@ -213,7 +213,7 @@ void setAMVCFiles(char *mainName, pList libs, const char *dir, char signalid[2])
 	}
 	strcpy(amvcFileName, ".AMV");
 	strcat(amvcFileName, mainName);
-	setIncludeAMVToFile(mainName, amvcFileName, 1, dir, signalid);
+	setIncludeAMVToFile(mainName, amvcFileName, 1, dir, signalid,mode);
 	strcpy(mainName, amvcFileName);
 	while(temp != NULL)
 	{
@@ -227,7 +227,7 @@ void setAMVCFiles(char *mainName, pList libs, const char *dir, char signalid[2])
 		}
 		strcpy(amvcFileName, ".AMV");
 		strcat(amvcFileName, temp->data);
-		setIncludeAMVToFile(temp->data, amvcFileName, 0, dir, signalid);
+		setIncludeAMVToFile(temp->data, amvcFileName, 0, dir, signalid,mode);
 		setd_cpyfirst(temp, strlen(amvcFileName)+1, amvcFileName);
 		temp = temp->next;
 	}

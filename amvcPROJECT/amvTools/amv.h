@@ -66,6 +66,7 @@ free(ptr)
 
 typedef struct
 {
+	int mode;
 	long mallocSpy;
 	long freeSpy;
 	long mallocSizeSpy;
