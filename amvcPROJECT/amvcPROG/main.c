@@ -248,6 +248,8 @@ int main(int argc, char *const*argv)
 				amvcNote("[-v] credits");
 				amvcNote("[-V] credits and open github");
 				amvcNote("[-s idsignal(11 | 2) already used in your prog]");
+				amvcNote("[-o [0, 3] view modes]");
+				amvcNote("[-R] active R graphics");
 				amvcWarning("these labels should not be defined in your file:\
 				\n\tAMVGLOBALTOOLS_t\n\tAMVGlobalTools\n\tstruct __AMV_List_t\n\t__AMV_List\n\tAMVMemBlock_t\n");
 				amvcWarning("your main function must be int function, not void");
