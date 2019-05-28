@@ -79,11 +79,10 @@ static void dcat_str(char **catstorage, const char *filename)
 
 int duplicateReservedLabel(const char *fileName)
 {
-	char dict[9][20] = {"AMVMemBlock_t", "mallocSpy", "freeSpy", "mallocSizeSpy", "SatckmemTemp", "memTemp",
-	"memBlocksList", "AMVLogs", "getMemBlockByAdress"};
+	char dict[5][20] = {"AMVMemBlock_t", "AMVGLOBALTOOLS_t", "AMVGlobalTools", "struct __AMV_List_t", "__AMV_List"};
 	char *buffer = NULL;
 	dcat_str(&buffer, fileName);
-	for(int i = 0; i < 9; i++)
+	for(int i = 0; i < 5; i++)
 	{
 		if(strstr(buffer, dict[i]))
 		{
@@ -99,7 +98,7 @@ int duplicateReservedLabel(const char *fileName)
 
 static void setIncludeAMVToFile(const char *, const char *, const int, const char*, char [2], int);
 static void setIncludeAMVToFile(const char *old, const char *new, const int mainMode, const char *dir, char signalid[2],int mode)
-{//AMVLogs
+{
 	FILE *fold = NULL;
 	FILE *fnew = NULL;
 	char buffer[1024] = "", *tmp=NULL, *tmp2=NULL;
@@ -201,9 +200,9 @@ static void setIncludeAMVToFile(const char *old, const char *new, const int main
 	fclose(fnew);
 }
 
-void setAMVCFiles(char *mainName, pList libs, const char *dir, char signalid[2],int mode)
+void setAMVCFiles(char *mainName, __AMV_List *libs, const char *dir, char signalid[2],int mode)
 {
-	pList temp = libs;
+	__AMV_List *temp = libs;
 	char *amvcFileName = NULL;
 	amvcFileName = malloc(sizeof(char)*strlen(mainName)+strlen("AMV")+1);
 	if(!amvcFileName)
@@ -244,13 +243,13 @@ static void interrupt(int dummy)
 	amvcNote("press enter to quit");
 }
 
-void compileAMVCFiles(const char *mainName,const pList libs, const char*flags, const char *exeArgs, const char *dir)
+void compileAMVCFiles(const char *mainName,__AMV_List *libs, const char*flags, const char *exeArgs, const char *dir)
 {
 	signal(SIGINT, interrupt);
 	char *cmd = NULL;
 	unsigned strlenlibs = 0;
 
-	pList temp = libs;
+	__AMV_List *temp = libs;
 	while(temp != NULL)
 	{
 		strlenlibs += strlen(temp->data)+1;

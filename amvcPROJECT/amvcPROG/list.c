@@ -37,13 +37,13 @@ void viewMemWatches(void)
 
 static Cell *create_cell(void *);
 
-int is_empty_list(List *L)
+int is_empty_list(__AMV_List *L)
 {
 	return L == NULL;
 }
 
 
-List * _implicit_alloc_data add_cpyfirst(List *L, size_t nbytes, void* data)
+__AMV_List * _implicit_alloc_data add_cpyfirst(__AMV_List *L, size_t nbytes, void* data)
 {
 	#ifdef MEMORY_VIEW_DEBUG
 	printf("add_cpyfirst -> malloc data... (list[%p] -> [%zuB])\n", L, nbytes);
@@ -60,11 +60,11 @@ List * _implicit_alloc_data add_cpyfirst(List *L, size_t nbytes, void* data)
 	return firstCell;
 }
 
-List * _implicit_alloc_data add_cpylast(List *L, size_t nbytes, void* data)
+__AMV_List * _implicit_alloc_data add_cpylast(__AMV_List *L, size_t nbytes, void* data)
 {
 	if(!L)
 		return add_cpyfirst(L, nbytes, data);
-	List *p = L;
+	__AMV_List *p = L;
 	#ifdef MEMORY_VIEW_DEBUG
 	printf("add_cpylast -> malloc data... (list[%p] -> [%zuB])\n", L, nbytes);
 	mallocDataWatchCounter++;
@@ -84,11 +84,11 @@ List * _implicit_alloc_data add_cpylast(List *L, size_t nbytes, void* data)
 	return L;
 }
 
-List * _implicit_alloc_data add_cpyat(List *L, size_t nbytes, void* data, unsigned long i)
+__AMV_List * _implicit_alloc_data add_cpyat(__AMV_List *L, size_t nbytes, void* data, unsigned long i)
 {
 	unsigned long j;
-	List *cur = L;
-	List *pshift;
+	__AMV_List *cur = L;
+	__AMV_List *pshift;
 	if(i == 0)
 	{
 		return add_cpyfirst(L, nbytes, data);
@@ -123,7 +123,7 @@ List * _implicit_alloc_data add_cpyat(List *L, size_t nbytes, void* data, unsign
 	return L;
 }
 
-List * _implicit_alloc_data add_ncpyfirst(List *L, size_t nbytes, unsigned long n, ...)
+__AMV_List * _implicit_alloc_data add_ncpyfirst(__AMV_List *L, size_t nbytes, unsigned long n, ...)
 {
 	va_list ptr;
 	va_start(ptr, n);
@@ -136,7 +136,7 @@ List * _implicit_alloc_data add_ncpyfirst(List *L, size_t nbytes, unsigned long 
 	return L;
 }
 
-List * _implicit_alloc_data add_ncpylast(List *L, size_t nbytes, unsigned long n, ...)
+__AMV_List * _implicit_alloc_data add_ncpylast(__AMV_List *L, size_t nbytes, unsigned long n, ...)
 {
 	va_list ptr;
 	va_start(ptr, n);
@@ -149,7 +149,7 @@ List * _implicit_alloc_data add_ncpylast(List *L, size_t nbytes, unsigned long n
 	return L;
 }
 
-List * _implicit_alloc_data add_ncpyat(List *L, size_t nbytes, unsigned long i, unsigned long n, ...)
+__AMV_List * _implicit_alloc_data add_ncpyat(__AMV_List *L, size_t nbytes, unsigned long i, unsigned long n, ...)
 {
 	va_list ptr;
 	va_start(ptr, n);
@@ -164,7 +164,7 @@ List * _implicit_alloc_data add_ncpyat(List *L, size_t nbytes, unsigned long i, 
 
 
 
-void _implicit_alloc_data _implicit_free_data setd_cpyfirst(List *L, size_t nbytes, void *data)
+void _implicit_alloc_data _implicit_free_data setd_cpyfirst(__AMV_List *L, size_t nbytes, void *data)
 {
 	#ifdef MEMORY_VIEW_DEBUG
 	printf("setd_cpyfirst -> free data...\n");
@@ -178,12 +178,12 @@ void _implicit_alloc_data _implicit_free_data setd_cpyfirst(List *L, size_t nbyt
 }
 
 
-List *empty_list(void)
+__AMV_List *empty_list(void)
 {
 	return NULL;
 }
 
-unsigned long len_list(List* L)
+unsigned long len_list(__AMV_List* L)
 {
 	unsigned long i = 0;
 	while(L)
@@ -212,7 +212,7 @@ static Cell *create_cell(void *data)
 	return cell;
 }
 
-List * _implicit_alloc_data add_str(List *L, char *str)
+__AMV_List * _implicit_alloc_data add_str(__AMV_List *L, char *str)
 {
 	#ifdef MEMORY_VIEW_DEBUG
 	printf("add_str -> malloc data... (list[%p] -> [%uB] -> {%s})\n", L, (unsigned)(strlen(str)+1),str);
@@ -223,7 +223,7 @@ List * _implicit_alloc_data add_str(List *L, char *str)
 
 	return L;
 }
-List *add_first(List *L, void *data)
+__AMV_List *add_first(__AMV_List *L, void *data)
 {
 	Cell *firstCell = create_cell(data);
 	if(!firstCell)
@@ -238,11 +238,11 @@ List *add_first(List *L, void *data)
 
 
 
-List *add_last(List *L, void *data)
+__AMV_List *add_last(__AMV_List *L, void *data)
 {
 	if(!L)
 		return add_first(L, data);
-	List *p = L;
+	__AMV_List *p = L;
 	Cell *endCell = create_cell(data);
 	if(!endCell)
 	{
@@ -260,14 +260,14 @@ List *add_last(List *L, void *data)
 
 
 
-void *get_first(List *L)
+void *get_first(__AMV_List *L)
 {
 	if(!L)
 		return NULL;
 	return L->data;
 }
 
-void *get_last(List *L)
+void *get_last(__AMV_List *L)
 {
 	if(!L)
 		return NULL;
@@ -279,7 +279,7 @@ void *get_last(List *L)
 }
 
 
-void *get_at(List *L, unsigned long i)
+void *get_at(__AMV_List *L, unsigned long i)
 {
 	int j;
 	if(i == 0)
@@ -304,11 +304,11 @@ void *get_at(List *L, unsigned long i)
 }
 
 
-List *free_first(List* L)
+__AMV_List *free_first(__AMV_List* L)
 {
 	if(!L)
 		return NULL;
-	List *p = L->next;
+	__AMV_List *p = L->next;
 	#ifdef MEMORY_VIEW_DEBUG
 	printf("free_first -> free cell...\n");
 	freeCellsWatchCounter++;
@@ -321,11 +321,11 @@ List *free_first(List* L)
 
 
 
-List * _implicit_free_data freed_first(List* L)
+__AMV_List * _implicit_free_data freed_first(__AMV_List* L)
 {
 	if(!L)
 		return NULL;
-	List *p = L->next;
+	__AMV_List *p = L->next;
 	#ifdef MEMORY_VIEW_DEBUG
 	printf("freed_first -> free cell...\n");
 	freeCellsWatchCounter++;
@@ -340,12 +340,12 @@ List * _implicit_free_data freed_first(List* L)
 	return p;
 }
 
-List * _implicit_free_data freed_last(List *L)
+__AMV_List * _implicit_free_data freed_last(__AMV_List *L)
 {
 	if(!L)
 		return NULL;
-	List *p = L;
-	List *prec;
+	__AMV_List *p = L;
+	__AMV_List *prec;
 	while(p->next)
 	{
 		prec = p;
@@ -366,10 +366,10 @@ List * _implicit_free_data freed_last(List *L)
 	return L;
 }
 
-List * _implicit_free_data freed_at(List *L, unsigned long i)
+__AMV_List * _implicit_free_data freed_at(__AMV_List *L, unsigned long i)
 {
 	int j;
-	List *prec, *next, *p=L;
+	__AMV_List *prec, *next, *p=L;
 	if(i == 0)
 	{
 		return freed_first(L);
@@ -404,7 +404,7 @@ List * _implicit_free_data freed_at(List *L, unsigned long i)
 	return L;
 }
 
-List * _implicit_free_data freed_list(List* L)
+__AMV_List * _implicit_free_data freed_list(__AMV_List* L)
 {
 	if(!L)
 	{
@@ -422,7 +422,7 @@ List * _implicit_free_data freed_list(List* L)
 	return NULL;
 }
 
-List * _implicit_alloc_data splitcpy_chrstr(List *L, char *str, char target)
+__AMV_List * _implicit_alloc_data splitcpy_chrstr(__AMV_List *L, char *str, char target)
 {
 	char *ptr = NULL;
 	char *tmp = NULL;
@@ -444,7 +444,7 @@ List * _implicit_alloc_data splitcpy_chrstr(List *L, char *str, char target)
 }
 
 
-List * _implicit_alloc_data splitcpy_chrstrex(List *L, char *str, char target)
+__AMV_List * _implicit_alloc_data splitcpy_chrstrex(__AMV_List *L, char *str, char target)
 {
 	L = splitcpy_chrstr(L, str, target);
 	int i, s, j, k, ok=0;

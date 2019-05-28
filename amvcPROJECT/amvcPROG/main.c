@@ -7,10 +7,65 @@
 #include "list.h"
 #include "amvc.h"
 
+int createAMVRFile(const char *filename)
+{
+	char msg[101] = {0};
+	FILE *fp = fopen(filename, "rt");
+	if(!fp)
+	{
+		fclose(fp);
+		fp = fopen(filename, "wt");
+		if(!fp)
+		{
+			amvcWarning("the R file is not created -> unknown error");
+			return 0;
+		}
+		else
+		{
+			fclose(fp);
+			return 1;
+		}
+	}
+	else
+	{
+		fseek(fp, 0, SEEK_END);
+		if(ftell(fp))
+		{
+			sprintf(msg, "the R file '%s' is not empty", filename);
+			amvcWarning(msg);
+			amvcNote("would you like to overwrite it? y/n");
+			if(getchar() == 'y')
+			{
+				fclose(fp);
+				fp = fopen(filename, "wt");
+				if(!fp)
+				{
+					amvcWarning("the R file is not created -> unknown error");
+					return 0;
+				}
+				else
+				{
+					fclose(fp);
+				}
+			}
+			else
+			{
+				amvcNote("R mode aborted");
+				fclose(fp);
+				return 0;
+			}
+		}
+		else
+		{
+			fclose(fp);
+		}
+	}
+	return 1;
+}
 
 int main(int argc, char *const*argv)
 {	
-	char optstring[] = ":hm:l:d:a:p:vVs:o:";
+	char optstring[] = ":hm:l:d:a:p:vVs:o:R";
 	char msg[1024] = "";
 	char dir[512] = "YOUR_PATH/amvTools/";
 	char mainFile[51] = "";
@@ -20,13 +75,17 @@ int main(int argc, char *const*argv)
 	char signalid[2] = {0};
 	int val=0, a=0;
 	int mode = 0;
+	int Rmode = 0;
 	
-	pList libs = empty_list();
-	pList tmp = empty_list();
+	__AMV_List *libs = empty_list();
+	__AMV_List *tmp = empty_list();
 	while((val=getopt(argc, argv, optstring))!=EOF)
 	{ 
 		switch(val)
 		{
+			case 'R':
+				Rmode = 1;
+				break;
 			case 'o':
 				if(strlen(optarg) == 1 && isdigit(*optarg))
 				{
@@ -96,9 +155,8 @@ int main(int argc, char *const*argv)
 				sprintf(msg, "main file: %s", optarg);
 				if(duplicateReservedLabel(optarg))
 				{
-					amvcWarning("these labels should not be defined in your file:\n\
-	\tAMVMemBlock_t\n\tmallocSpy\n\tfreeSpy\n\tmallocSizeSpy\n\tSatckmemTemp\n\tmemTemp\n\tmemBlocksList\n\t\
-	AMVLogs\n\tgetMemBlockByAdress\n\tadd_cpylastAMV\n");
+					amvcWarning("these labels should not be defined in your file:\
+				\n\tAMVGLOBALTOOLS_t\n\tAMVGlobalTools\n\tstruct __AMV_List_t\n\t__AMV_List\n\tAMVMemBlock_t\n");
 					libs = freed_list(libs);
 					return -1;
 				}
@@ -155,7 +213,7 @@ int main(int argc, char *const*argv)
 					sprintf(msg, "lib file: %s", tmp->data);
 					if(duplicateReservedLabel(tmp->data))
 					{
-						amvcWarning("these labels should not be defined in your file:\n\tAMVMemBlock_t\n\tmallocSpy\n\tfreeSpy\n\tmallocSizeSpy\n\tSatckmemTemp\n\tmemTemp\n\tmemBlocksList\n\tAMVLogs\n\tgetMemBlockByAdress\n\tadd_cpylastAMV\n");
+						amvcWarning("these labels should not be defined in your file:\n\tAMVMemBlock_t\n\tmallocSpy\n\tfreeSpy\n\tmallocSizeSpy\n\tSatckmemTemp\n\tmemTemp\n\tmemBlocks__AMV_List\n\tAMVLogs\n\tgetMemBlockByAdress\n\tadd_cpylastAMV\n");
 						libs = freed_list(libs);
 						return -1;
 					}
@@ -191,7 +249,7 @@ int main(int argc, char *const*argv)
 				amvcNote("[-V] credits and open github");
 				amvcNote("[-s idsignal(11 | 2) already used in your prog]");
 				amvcWarning("these labels should not be defined in your file:\
-				\n\tAMVGLOBALTOOLS_t\n\tAMVGlobalTools\n\tstruct List_t\n\tList\n\tAMVMemBlock_t\n");
+				\n\tAMVGLOBALTOOLS_t\n\tAMVGlobalTools\n\tstruct __AMV_List_t\n\t__AMV_List\n\tAMVMemBlock_t\n");
 				amvcWarning("your main function must be int function, not void");
 				libs = freed_list(libs);
 				exit(0);
@@ -208,7 +266,13 @@ int main(int argc, char *const*argv)
 	setAMVCFiles(mainFile, libs, dir, signalid, mode);
 	generateAMV_H(dir);
 	if(strcmp(dir, "ERROR"))
+	{
+		if(Rmode)
+		{
+			Rmode = createAMVRFile("__amvRfile__.r");
+		}
 		compileAMVCFiles(mainFile, libs, flags, exeArgs, dir);
+	}
 	remove(mainFile);
 	remove("amv");
 	tmp = libs;
@@ -218,6 +282,14 @@ int main(int argc, char *const*argv)
 		tmp = tmp->next;
 	}
 	libs = freed_list(libs);
-
+	if(Rmode)
+	{
+		amvcWarning("*-------------- R GENERATION --------------*");
+		system("R --silent -f __amvRfile__.r");
+		amvcNote("keep __amvRfile__.r? y/n");
+		if(getchar()=='n')
+			remove("__amvRfile__.r");
+		system("open Rplots.pdf");
+	}
 	return 0;
 }

@@ -7,28 +7,28 @@
 #ifdef MEMORY_VIEW_DEBUG
 void viewMemWatches(void);
 #endif
-struct List_t
+struct __AMV_List_t
 {
 	void *data;
-	struct List_t *next;
+	struct __AMV_List_t *next;
 };
-typedef struct List_t List, *pList;
-typedef struct List_t Cell;
+typedef struct __AMV_List_t __AMV_List, *p__AMV_List;
+typedef struct __AMV_List_t Cell;
 
 
-unsigned long len_list(List*);
-List *empty_list(void);
-List *add_last(List *, void*);
-List *_implicit_alloc_data add_cpylast(List *, size_t, void*);
-void _implicit_alloc_data _implicit_free_data setd_cpyfirst(List *, size_t, void *);
-void *get_first(List *);
-void *get_last(List *);
-void *get_at(List *, unsigned long);
-List *_implicit_free_data freed_last(List *);
-List *_implicit_free_data freed_at(List *, unsigned long);
-List *_implicit_free_data freed_list(List *);
-List *_implicit_alloc_data splitcpy_chrstr(List *, char *, char);
-List *_implicit_alloc_data splitcpy_chrstrex(List *, char *, char);
+unsigned long len_list(__AMV_List*);
+__AMV_List *empty_list(void);
+__AMV_List *add_last(__AMV_List *, void*);
+__AMV_List *_implicit_alloc_data add_cpylast(__AMV_List *, size_t, void*);
+void _implicit_alloc_data _implicit_free_data setd_cpyfirst(__AMV_List *, size_t, void *);
+void *get_first(__AMV_List *);
+void *get_last(__AMV_List *);
+void *get_at(__AMV_List *, unsigned long);
+__AMV_List *_implicit_free_data freed_last(__AMV_List *);
+__AMV_List *_implicit_free_data freed_at(__AMV_List *, unsigned long);
+__AMV_List *_implicit_free_data freed_list(__AMV_List *);
+__AMV_List *_implicit_alloc_data splitcpy_chrstr(__AMV_List *, char *, char);
+__AMV_List *_implicit_alloc_data splitcpy_chrstrex(__AMV_List *, char *, char);
 
 
 #endif

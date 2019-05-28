@@ -6,7 +6,7 @@
 #include <stdlib.h>
 
 
-typedef struct List_t List;
+typedef struct __AMV_List_t __AMV_List;
 typedef struct
 {
 	void *mem;
@@ -34,7 +34,7 @@ AMVGlobalTools.SatckmemTemp.bytesAllocated=size,\
 AMVGlobalTools.SatckmemTemp.isFree=0,\
 AMVGlobalTools.SatckmemTemp.mem=malloc(size),\
 printf("\033[97m%p\033[0m\n\033[90m> [%s : %s : %d]\033[0m\n\n", AMVGlobalTools.SatckmemTemp.mem,strstr(__FILE__, "V")+1,__func__,__LINE__-1),\
-AMVGlobalTools.memBlocksList=AMVGlobalTools.add_cpylastAMV(AMVGlobalTools.memBlocksList, sizeof(AMVMemBlock_t), &AMVGlobalTools.SatckmemTemp),\
+AMVGlobalTools.memBlocks__AMV_List=AMVGlobalTools.add_cpylastAMV(AMVGlobalTools.memBlocks__AMV_List, sizeof(AMVMemBlock_t), &AMVGlobalTools.SatckmemTemp),\
 AMVGlobalTools.SatckmemTemp.mem)
 
 #define calloc(count, size) (AMVGlobalTools.SatckmemTemp.line= __LINE__-1,\
@@ -49,7 +49,7 @@ AMVGlobalTools.SatckmemTemp.bytesAllocated=size*count,\
 AMVGlobalTools.SatckmemTemp.isFree=0,\
 AMVGlobalTools.SatckmemTemp.mem=calloc(count, size),\
 printf("\033[97m%p\033[0m\n\033[90m> [%s : %s : %d]\033[0m\n\n", AMVGlobalTools.SatckmemTemp.mem,strstr(__FILE__, "V")+1,__func__,__LINE__-1),\
-AMVGlobalTools.memBlocksList=AMVGlobalTools.add_cpylastAMV(AMVGlobalTools.memBlocksList, sizeof(AMVMemBlock_t), &AMVGlobalTools.SatckmemTemp),\
+AMVGlobalTools.memBlocks__AMV_List=AMVGlobalTools.add_cpylastAMV(AMVGlobalTools.memBlocks__AMV_List, sizeof(AMVMemBlock_t), &AMVGlobalTools.SatckmemTemp),\
 AMVGlobalTools.SatckmemTemp.mem)
 
 #define free(ptr) AMVGlobalTools.freeSpy++,\
@@ -72,10 +72,10 @@ typedef struct
 	long mallocSizeSpy;
 	AMVMemBlock_t SatckmemTemp;
 	AMVMemBlock_t *memTemp;
-	List *memBlocksList;
+	__AMV_List *memBlocks__AMV_List;
 	void (*AMVLogs)(void);
 	void (*getMemBlockByAdress)(const void *);
-	List *(*add_cpylastAMV)(List *, size_t, void*);
+	__AMV_List *(*add_cpylastAMV)(__AMV_List *, size_t, void*);
 	void (*aborts)(int);
 	void (*ctrC)(int);
 }AMVGLOBALTOOLS_t;

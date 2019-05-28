@@ -14,27 +14,27 @@
 #define cprint4(str, color1, color2, color3, color4) printf("\033[%d;%d;%d;%dm%s\033[0m", color1, color2, color3, color4, str)
 #define _implicit_alloc_data
 #define _implicit_free_data
-struct List_t
+struct __AMV_List_t
 {
 	void *data;
-	struct List_t *next;
+	struct __AMV_List_t *next;
 };
 
-typedef struct List_t Cell;
-static int is_empty_list(List *L);
-static List * _implicit_alloc_data add_cpyfirst(List *L, size_t nbytes, void* data);
-static List * _implicit_alloc_data add_cpylast(List *L, size_t nbytes, void* data);
-static List *empty_list(void);
-static unsigned long len_list(List* L);
+typedef struct __AMV_List_t Cell;
+static int is_empty_list(__AMV_List *L);
+static __AMV_List * _implicit_alloc_data add_cpyfirst(__AMV_List *L, size_t nbytes, void* data);
+static __AMV_List * _implicit_alloc_data add_cpylast(__AMV_List *L, size_t nbytes, void* data);
+static __AMV_List *empty_list(void);
+static unsigned long len_list(__AMV_List* L);
 static Cell *create_cell(void *data);
-static void *get_first(List *L);
-static void *get_last(List *L);
-static void *get_at(List *L, unsigned long i);
-static List *free_first(List* L);
-static List * _implicit_free_data freed_first(List* L);
-static List * _implicit_free_data freed_last(List *L);
-static List * _implicit_free_data freed_at(List *L, unsigned long i);
-static List * _implicit_free_data freed_list(List* L);
+static void *get_first(__AMV_List *L);
+static void *get_last(__AMV_List *L);
+static void *get_at(__AMV_List *L, unsigned long i);
+static __AMV_List *free_first(__AMV_List* L);
+static __AMV_List * _implicit_free_data freed_first(__AMV_List* L);
+static __AMV_List * _implicit_free_data freed_last(__AMV_List *L);
+static __AMV_List * _implicit_free_data freed_at(__AMV_List *L, unsigned long i);
+static __AMV_List * _implicit_free_data freed_list(__AMV_List* L);
 
 typedef enum
 {
@@ -109,7 +109,7 @@ static void ctrC(int dummy)
 static long getMemReleased(void)
 {
 	long totMemReleased = 0;
-	List* temp = AMVGlobalTools.memBlocksList;
+	__AMV_List* temp = AMVGlobalTools.memBlocks__AMV_List;
 	printf("\n");
 	while(temp != NULL)
 	{
@@ -123,7 +123,7 @@ static long getMemReleased(void)
 
 static void AMVTabLogs(void)
 {
-	List* temp = AMVGlobalTools.memBlocksList;
+	__AMV_List* temp = AMVGlobalTools.memBlocks__AMV_List;
 	AMVMemBlock_t *data;
 	char b[128] = "";
 	printf("\033[97m+----------------------+------------------+----------------+------+\n");
@@ -152,7 +152,7 @@ static void AMVTabLogs(void)
 static void AMVStatusLogs(void);
 static void AMVStatusLogs(void)
 {
-	List* temp = AMVGlobalTools.memBlocksList;
+	__AMV_List* temp = AMVGlobalTools.memBlocks__AMV_List;
 	AMVMemBlock_t *data;
 	printf("\n\n\033[97m");
 	while(temp)
@@ -172,7 +172,90 @@ data->mem, data->id,data->file, data->func, data->line);
 	printf("\033[0m\n");
 }
 
-
+static void RCodeGeneration(const char *);
+static void RCodeGeneration(const char *filename)
+{
+	FILE *fp = fopen(filename, "r+t");
+	if(!fp)
+		return;
+	else
+	{
+		fseek(fp, 0, SEEK_END);
+		if(!ftell(fp))
+		{
+			rewind(fp);
+			fprintf(fp, "MALLOCDATA <- c(");
+			__AMV_List *tmp = AMVGlobalTools.memBlocks__AMV_List;
+			while(tmp->next)
+			{
+				fprintf(fp, "%zu, ", ((AMVMemBlock_t*)tmp->data)->bytesAllocated);
+				tmp = tmp->next;
+			}
+			fprintf(fp, "%zu)\n", ((AMVMemBlock_t*)tmp->data)->bytesAllocated);
+			fprintf(fp, "FREEDATA <- c(");
+			tmp = AMVGlobalTools.memBlocks__AMV_List;
+			while(tmp->next)
+			{
+				if(((AMVMemBlock_t*)tmp->data)->isFree)
+				{
+					fprintf(fp, "%zu, ", ((AMVMemBlock_t*)tmp->data)->bytesAllocated);
+				}
+				tmp = tmp->next;
+			}
+			if(((AMVMemBlock_t*)tmp->data)->isFree)
+			{
+				fprintf(fp, "%zu)\n", ((AMVMemBlock_t*)tmp->data)->bytesAllocated);
+			}
+			else
+			{
+				fseek(fp, -2, SEEK_CUR);
+				fprintf(fp, ")\n");
+			}
+			fprintf(fp, "FREEDATAWithNULL <- c(");
+			tmp = AMVGlobalTools.memBlocks__AMV_List;
+			while(tmp->next)
+			{
+				if(((AMVMemBlock_t*)tmp->data)->isFree)
+				{
+					fprintf(fp, "%zu, ", ((AMVMemBlock_t*)tmp->data)->bytesAllocated);
+				}
+				else
+				{
+					fprintf(fp, "0, ");
+				}
+				tmp = tmp->next;
+			}
+			if(((AMVMemBlock_t*)tmp->data)->isFree)
+			{
+				fprintf(fp, "%zu)\n", ((AMVMemBlock_t*)tmp->data)->bytesAllocated);
+			}
+			else
+			{
+				fprintf(fp, "0)\n");
+			}
+			fprintf(fp, "hist(MALLOCDATA, nclass=15,labels=TRUE,xlab=\"bytes\", main=\"Histogram of allocations\")\n");
+			fprintf(fp, "hist(FREEDATA, nclass=15,labels=TRUE,xlab=\"bytes\", main=\"Histogram of releases\")\n");
+			fprintf(fp, "boxplot(MALLOCDATA, main=\"allocation outliers\")\n");
+			fprintf(fp, "boxplot(FREEDATA, main=\"release outliers\")\n");
+			fprintf(fp, "plot(x=MALLOCDATA, y=FREEDATAWithNULL, main=\"memory leaks\", ylab=\"release\",xlab=\"alloc\")\n");
+			fprintf(fp, "abline(lm(formula = FREEDATAWithNULL~MALLOCDATA), col='blue')\n");
+			fprintf(fp, "quantile(MALLOCDATA)\n");
+			fprintf(fp, "IQR(MALLOCDATA)\n");
+			fprintf(fp, "mean(MALLOCDATA)\n");
+			fprintf(fp, "quantile(FREEDATA)\n");
+			fprintf(fp, "IQR(FREEDATA)\n");
+			fprintf(fp, "mean(FREEDATA)\n");
+			//fprintf(fp, "norep = FREEDATA[!duplicated(FREEDATA)]\n");
+			//fprintf(fp, "pie(norep, norep,  main=\"allocation outliers\")\n");
+			//fprintf(fp, "plot(as.table(cumsum(table(FREEDATA))), xlab=\"bytes\", ylab=\"Frequency\",type=\"b\", main=\"ni cum release\")\n");
+			fclose(fp);
+		}
+		else
+		{
+			fclose(fp);
+		}
+	}
+}
 
 static void AMVLogs(void)
 {
@@ -197,20 +280,21 @@ static void AMVLogs(void)
 	cprint3("released memory:", LIGHT_MAGENTA, UNDERLINE, ITALIC);
 	printf(" \033[97m%ld\033[0m bytes\n\n", bytesFree);
 	cprint3("memory leaks:", LIGHT_MAGENTA, UNDERLINE, ITALIC);
-	printf(" %s%ld ==> %ld bytes lost\033[0m\n", freeLost?"\033[91m":"\033[96m", freeLost, AMVGlobalTools.mallocSizeSpy-bytesFree);
-	if(!strcmp(AMVGlobalTools.SatckmemTemp.id, "-1") && len_list(AMVGlobalTools.memBlocksList))
+	printf(" %s%ld ==> %ld bytes lost\033[0m\n", (freeLost||AMVGlobalTools.mallocSizeSpy-bytesFree)?"\033[91m":"\033[96m", freeLost, AMVGlobalTools.mallocSizeSpy-bytesFree);
+	if(!strcmp(AMVGlobalTools.SatckmemTemp.id, "-1") && len_list(AMVGlobalTools.memBlocks__AMV_List))
 	{
 		cprint1("\n[Illegal memory access -> ", LIGHT_RED);
 		cprint2("abort", LIGHT_MAGENTA, BLINK);
 		cprint1("]\n\n", LIGHT_RED);
 	}
-	AMVGlobalTools.memBlocksList = freed_list(AMVGlobalTools.memBlocksList);
+	RCodeGeneration("__amvRfile__.r");
+	AMVGlobalTools.memBlocks__AMV_List = freed_list(AMVGlobalTools.memBlocks__AMV_List);
 }
 
 static void getMemBlockByAdress(const void *adress)
 {
 	AMVMemBlock_t *mem = NULL;
-	List* temp = AMVGlobalTools.memBlocksList;
+	__AMV_List* temp = AMVGlobalTools.memBlocks__AMV_List;
 	while(temp != NULL)
 	{
 		mem = temp->data;
@@ -224,12 +308,12 @@ static void getMemBlockByAdress(const void *adress)
 
 
 /* LIST */
-static int is_empty_list(List *L)
+static int is_empty_list(__AMV_List *L)
 {
 	return L == NULL;
 }
 
-static List * _implicit_alloc_data add_cpyfirst(List *L, size_t nbytes, void* data)
+static __AMV_List * _implicit_alloc_data add_cpyfirst(__AMV_List *L, size_t nbytes, void* data)
 {
 	Cell *firstCell = create_cell(malloc(nbytes));
 	if(!firstCell)
@@ -242,11 +326,11 @@ static List * _implicit_alloc_data add_cpyfirst(List *L, size_t nbytes, void* da
 	return firstCell;
 }
 
-static List * _implicit_alloc_data add_cpylast(List *L, size_t nbytes, void* data)
+static __AMV_List * _implicit_alloc_data add_cpylast(__AMV_List *L, size_t nbytes, void* data)
 {
 	if(!L)
 		return add_cpyfirst(L, nbytes, data);
-	List *p = L;
+	__AMV_List *p = L;
 	Cell *endCell = create_cell(malloc(nbytes));
 	if(!endCell)
 	{
@@ -262,12 +346,12 @@ static List * _implicit_alloc_data add_cpylast(List *L, size_t nbytes, void* dat
 	return L;
 }
 
-static List *empty_list(void)
+static __AMV_List *empty_list(void)
 {
 	return NULL;
 }
 
-static unsigned long len_list(List* L)
+static unsigned long len_list(__AMV_List* L)
 {
 	unsigned long i = 0;
 	while(L)
@@ -293,14 +377,14 @@ static Cell *create_cell(void *data)
 	return cell;
 }
 
-static void *get_first(List *L)
+static void *get_first(__AMV_List *L)
 {
 	if(!L)
 		return NULL;
 	return L->data;
 }
 
-static void *get_last(List *L)
+static void *get_last(__AMV_List *L)
 {
 	if(!L)
 		return NULL;
@@ -312,7 +396,7 @@ static void *get_last(List *L)
 }
 
 
-static void *get_at(List *L, unsigned long i)
+static void *get_at(__AMV_List *L, unsigned long i)
 {
 	int j;
 	if(i == 0)
@@ -337,11 +421,11 @@ static void *get_at(List *L, unsigned long i)
 }
 
 
-static List *free_first(List* L)
+static __AMV_List *free_first(__AMV_List* L)
 {
 	if(!L)
 		return NULL;
-	List *p = L->next;
+	__AMV_List *p = L->next;
 	
 	free(L);
 
@@ -349,11 +433,11 @@ static List *free_first(List* L)
 }
 
 
-static List * _implicit_free_data freed_first(List* L)
+static __AMV_List * _implicit_free_data freed_first(__AMV_List* L)
 {
 	if(!L)
 		return NULL;
-	List *p = L->next;
+	__AMV_List *p = L->next;
 	
 	free(L->data);
 	
@@ -362,12 +446,12 @@ static List * _implicit_free_data freed_first(List* L)
 	return p;
 }
 
-static List * _implicit_free_data freed_last(List *L)
+static __AMV_List * _implicit_free_data freed_last(__AMV_List *L)
 {
 	if(!L)
 		return NULL;
-	List *p = L;
-	List *prec;
+	__AMV_List *p = L;
+	__AMV_List *prec;
 	while(p->next)
 	{
 		prec = p;
@@ -382,10 +466,10 @@ static List * _implicit_free_data freed_last(List *L)
 	return L;
 }
 
-static List * _implicit_free_data freed_at(List *L, unsigned long i)
+static __AMV_List * _implicit_free_data freed_at(__AMV_List *L, unsigned long i)
 {
 	int j;
-	List *prec, *next, *p=L;
+	__AMV_List *prec, *next, *p=L;
 	if(i == 0)
 	{
 		return freed_first(L);
@@ -414,7 +498,7 @@ static List * _implicit_free_data freed_at(List *L, unsigned long i)
 	return L;
 }
 
-static List * _implicit_free_data freed_list(List* L)
+static __AMV_List * _implicit_free_data freed_list(__AMV_List* L)
 {
 	if(!L)
 	{
